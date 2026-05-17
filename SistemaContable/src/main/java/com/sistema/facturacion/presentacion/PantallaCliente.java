@@ -164,21 +164,7 @@ public class PantallaCliente {
                 cargarTabla();
                 return;
             }
-            // Intentar buscar por ID primero
-            try {
-                int id = Integer.parseInt(val);
-                Cliente c = negocio.buscar(id);
-                datos.clear();
-                if (c != null) {
-                    datos.add(c);
-                    lblMensaje.setText("1 registro encontrado.");
-                } else {
-                    lblMensaje.setText("No se encontró ningún registro.");
-                }
-                return;
-            } catch (NumberFormatException ignored) {}
-
-            // Buscar por texto
+            // Siempre buscar por todos los campos
             var lista = negocio.buscarPorCampo(val);
             datos.clear();
             if (lista != null && !lista.isEmpty()) {

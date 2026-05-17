@@ -22,40 +22,39 @@ import java.util.List;
 
 public class PantallaFactura {
 
-    private NegocioFactura negocioFactura   = new NegocioFactura();
-    private NegocioCliente negocioCliente   = new NegocioCliente();
-    private NegocioCiudad  negocioCiudad    = new NegocioCiudad();
+    private NegocioFactura  negocioFactura = new NegocioFactura();
+    private NegocioCliente  negocioCliente = new NegocioCliente();
+    private NegocioCiudad   negocioCiudad  = new NegocioCiudad();
 
-    // Cabecera
+    // ── Cabecera ──
     private TextField  txtIdFactura     = new TextField();
     private TextField  txtNumeroFactura = new TextField();
     private DatePicker dpFecha          = new DatePicker();
-    private ComboBox<Cliente>        cmbCliente = new ComboBox<>();
-    private ComboBox<CiudadEntrega>  cmbCiudad  = new ComboBox<>();
+    private ComboBox<Cliente>       cmbCliente = new ComboBox<>();
+    private ComboBox<CiudadEntrega> cmbCiudad  = new ComboBox<>();
     private TextField  txtTotal         = new TextField();
     private Label      lblMensaje       = new Label();
 
-    // Detalle — formulario
-    private TextField txtIdDetalle  = new TextField();
-    private TextField txtArticulo   = new TextField();
-    private TextField txtCantidad   = new TextField();
-    private TextField txtPrecio     = new TextField();
+    // ── Detalle ──
+    private TextField txtIdDetalle   = new TextField();
+    private TextField txtIdArticulo  = new TextField();
+    private TextField txtCantidad    = new TextField();
+    private TextField txtPrecio      = new TextField();
 
-    // Tablas
+    // ── Tablas ──
     private TableView<FacturaCabecera> tablaFacturas = new TableView<>();
     private ObservableList<FacturaCabecera> datosFacturas = FXCollections.observableArrayList();
 
     private TableView<FacturaDetalle> tablaDetalle = new TableView<>();
     private ObservableList<FacturaDetalle> datosDetalle = FXCollections.observableArrayList();
 
-    // Detalle temporal (antes de guardar)
     private List<FacturaDetalle> detallesTemporal = new ArrayList<>();
     private int contadorDetalle = 1;
 
     public void mostrar(Stage stage) {
         stage.setTitle("Facturación | Facturas");
 
-        // ══ SECCIÓN CABECERA ══
+        // ══ CABECERA ══
         GridPane formCab = new GridPane();
         formCab.setHgap(10);
         formCab.setVgap(8);
@@ -66,29 +65,29 @@ public class PantallaFactura {
         txtTotal.setEditable(false);
         txtTotal.setStyle("-fx-background-color: #f0f0f0;");
 
-        formCab.add(new Label("ID Factura:"),      0, 0); formCab.add(txtIdFactura,     1, 0);
-        formCab.add(new Label("Nro. Factura:"),    0, 1); formCab.add(txtNumeroFactura,  1, 1);
-        formCab.add(new Label("Fecha:"),           0, 2); formCab.add(dpFecha,           1, 2);
-        formCab.add(new Label("Cliente:"),         0, 3); formCab.add(cmbCliente,        1, 3);
-        formCab.add(new Label("Ciudad Entrega:"),  0, 4); formCab.add(cmbCiudad,         1, 4);
-        formCab.add(new Label("Total:"),           0, 5); formCab.add(txtTotal,          1, 5);
+        formCab.add(new Label("ID Factura:"),     0, 0); formCab.add(txtIdFactura,    1, 0);
+        formCab.add(new Label("Nro. Factura:"),   0, 1); formCab.add(txtNumeroFactura, 1, 1);
+        formCab.add(new Label("Fecha:"),          0, 2); formCab.add(dpFecha,          1, 2);
+        formCab.add(new Label("Cliente:"),        0, 3); formCab.add(cmbCliente,       1, 3);
+        formCab.add(new Label("Ciudad Entrega:"), 0, 4); formCab.add(cmbCiudad,        1, 4);
+        formCab.add(new Label("Total:"),          0, 5); formCab.add(txtTotal,         1, 5);
 
-        // Configurar ComboBox Cliente
+        // ComboBox Cliente
         cmbCliente.setItems(FXCollections.observableArrayList(negocioCliente.listarTodos()));
         cmbCliente.setCellFactory(lv -> new ListCell<>() {
             protected void updateItem(Cliente c, boolean empty) {
                 super.updateItem(c, empty);
-                setText(empty || c == null ? "" : c.getNombre());
+                setText(empty || c == null ? "" : c.getNombre() + " - " + c.getCedula());
             }
         });
         cmbCliente.setButtonCell(new ListCell<>() {
             protected void updateItem(Cliente c, boolean empty) {
                 super.updateItem(c, empty);
-                setText(empty || c == null ? "" : c.getNombre());
+                setText(empty || c == null ? "" : c.getNombre() + " - " + c.getCedula());
             }
         });
 
-        // Configurar ComboBox Ciudad
+        // ComboBox Ciudad
         cmbCiudad.setItems(FXCollections.observableArrayList(negocioCiudad.listarTodos()));
         cmbCiudad.setCellFactory(lv -> new ListCell<>() {
             protected void updateItem(CiudadEntrega c, boolean empty) {
@@ -103,10 +102,10 @@ public class PantallaFactura {
             }
         });
 
-        // ══ BOTONES CABECERA ══
+        // ── Botones Cabecera ──
         Button btnNuevo    = new Button("Nueva Factura");
-        Button btnGuardar  = new Button("Guardar Factura");
-        Button btnEliminar = new Button("Eliminar Factura");
+        Button btnGuardar  = new Button("Guardar");
+        Button btnEliminar = new Button("Eliminar");
         Button btnBuscar   = new Button("Buscar");
         Button btnLimpiar  = new Button("Limpiar");
 
@@ -117,7 +116,7 @@ public class PantallaFactura {
         btnsCab.setPadding(new Insets(5));
         btnsCab.setAlignment(Pos.CENTER_LEFT);
 
-        // ══ TABLA FACTURAS ══
+        // ── Tabla Facturas ──
         TableColumn<FacturaCabecera, Integer> colId = new TableColumn<>("ID");
         colId.setCellValueFactory(new PropertyValueFactory<>("idFactura"));
         colId.setPrefWidth(50);
@@ -138,9 +137,13 @@ public class PantallaFactura {
         tablaFacturas.setItems(datosFacturas);
         tablaFacturas.setPrefHeight(150);
 
-        // ══ SECCIÓN DETALLE ══
+        // ══ DETALLE ══
         Label lblDetalle = new Label("── Detalle de Factura ──");
         lblDetalle.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E75B6;");
+
+        Label lblNotaArticulo = new Label(
+                "* ID Artículo: ingrese el ID del artículo del módulo Inventarios");
+        lblNotaArticulo.setStyle("-fx-font-size: 10px; -fx-text-fill: #888888; -fx-font-style: italic;");
 
         GridPane formDet = new GridPane();
         formDet.setHgap(10);
@@ -149,15 +152,18 @@ public class PantallaFactura {
 
         txtIdDetalle.setEditable(false);
         txtIdDetalle.setStyle("-fx-background-color: #f0f0f0;");
+        txtIdArticulo.setPromptText("ID del artículo");
+        txtCantidad.setPromptText("Ej: 2");
+        txtPrecio.setPromptText("Ej: 15.50");
 
-        formDet.add(new Label("ID Det:"),    0, 0); formDet.add(txtIdDetalle, 1, 0);
-        formDet.add(new Label("Artículo:"),  0, 1); formDet.add(txtArticulo,  1, 1);
-        formDet.add(new Label("Cantidad:"),  0, 2); formDet.add(txtCantidad,  1, 2);
-        formDet.add(new Label("Precio:"),    0, 3); formDet.add(txtPrecio,    1, 3);
+        formDet.add(new Label("ID Det:"),     0, 0); formDet.add(txtIdDetalle,  1, 0);
+        formDet.add(new Label("ID Artículo:"),0, 1); formDet.add(txtIdArticulo, 1, 1);
+        formDet.add(new Label("Cantidad:"),   0, 2); formDet.add(txtCantidad,   1, 2);
+        formDet.add(new Label("Precio:"),     0, 3); formDet.add(txtPrecio,     1, 3);
 
-        Button btnAgregarDet  = new Button("Agregar al Detalle");
-        Button btnEliminarDet = new Button("Eliminar Detalle");
-        Button btnModificarDet= new Button("Modificar Detalle");
+        Button btnAgregarDet   = new Button("Agregar Detalle");
+        Button btnModificarDet = new Button("Modificar Detalle");
+        Button btnEliminarDet  = new Button("Eliminar Detalle");
 
         btnAgregarDet.setStyle("-fx-background-color: #2E75B6; -fx-text-fill: white;");
         btnEliminarDet.setStyle("-fx-background-color: #C0392B; -fx-text-fill: white;");
@@ -165,12 +171,12 @@ public class PantallaFactura {
         HBox btnsDet = new HBox(8, btnAgregarDet, btnModificarDet, btnEliminarDet);
         btnsDet.setPadding(new Insets(5));
 
-        // ══ TABLA DETALLE ══
-        TableColumn<FacturaDetalle, Integer> colIdDet = new TableColumn<>("ID");
+        // ── Tabla Detalle ──
+        TableColumn<FacturaDetalle, Integer> colIdDet = new TableColumn<>("ID Det");
         colIdDet.setCellValueFactory(new PropertyValueFactory<>("idFacturaDet"));
-        colIdDet.setPrefWidth(50);
+        colIdDet.setPrefWidth(60);
 
-        TableColumn<FacturaDetalle, Integer> colArt = new TableColumn<>("Artículo ID");
+        TableColumn<FacturaDetalle, Integer> colArt = new TableColumn<>("ID Artículo");
         colArt.setCellValueFactory(new PropertyValueFactory<>("idArticulo"));
         colArt.setPrefWidth(100);
 
@@ -186,16 +192,15 @@ public class PantallaFactura {
         tablaDetalle.setItems(datosDetalle);
         tablaDetalle.setPrefHeight(150);
 
-        // ══ MENSAJE ══
         lblMensaje.setStyle("-fx-text-fill: blue; -fx-font-weight: bold;");
 
-        // ══ LAYOUT PRINCIPAL ══
+        // ══ LAYOUT ══
         VBox layout = new VBox(8,
                 new Label("═══ CABECERA ═══"),
                 formCab, btnsCab,
                 tablaFacturas,
                 lblMensaje,
-                lblDetalle,
+                lblDetalle, lblNotaArticulo,
                 formDet, btnsDet,
                 tablaDetalle
         );
@@ -206,14 +211,20 @@ public class PantallaFactura {
             txtIdFactura.setText(String.valueOf(negocioFactura.obtenerSiguienteId()));
             txtNumeroFactura.setText("FAC-" + txtIdFactura.getText());
             dpFecha.setValue(java.time.LocalDate.now());
-            txtTotal.setText("0.0");
+            txtTotal.setText("0.00");
             detallesTemporal.clear();
             datosDetalle.clear();
             contadorDetalle = negocioFactura.obtenerSiguienteIdDetalle();
+            cmbCliente.setValue(null);
+            cmbCiudad.setValue(null);
             lblMensaje.setText("");
         });
 
         btnGuardar.setOnAction(e -> {
+            if (txtIdFactura.getText().isEmpty()) {
+                lblMensaje.setText("Presione 'Nueva Factura' primero.");
+                return;
+            }
             if (cmbCliente.getValue() == null || cmbCiudad.getValue() == null) {
                 lblMensaje.setText("Seleccione cliente y ciudad.");
                 return;
@@ -228,7 +239,8 @@ public class PantallaFactura {
             f.setFecha(java.sql.Date.valueOf(dpFecha.getValue()));
             f.setCliente(cmbCliente.getValue());
             f.setCiudad(cmbCiudad.getValue());
-            f.setValorTotal(Double.parseDouble(txtTotal.getText()));
+            f.setValorTotal(Double.parseDouble(
+                    txtTotal.getText().replace(",", ".")));
             f.setDetalles(new ArrayList<>(detallesTemporal));
 
             if (negocioFactura.insertar(f) == 1) {
@@ -284,7 +296,6 @@ public class PantallaFactura {
 
         btnLimpiar.setOnAction(e -> limpiar());
 
-        // Seleccionar factura en tabla
         tablaFacturas.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, newVal) -> {
                     if (newVal != null) {
@@ -302,27 +313,35 @@ public class PantallaFactura {
 
         // ══ EVENTOS DETALLE ══
         btnAgregarDet.setOnAction(e -> {
-            if (txtArticulo.getText().isEmpty() || txtCantidad.getText().isEmpty()
+            if (txtIdArticulo.getText().isEmpty() || txtCantidad.getText().isEmpty()
                     || txtPrecio.getText().isEmpty()) {
-                lblMensaje.setText("Complete los campos del detalle.");
+                lblMensaje.setText("Complete ID Artículo, Cantidad y Precio.");
                 return;
             }
-            FacturaDetalle det = new FacturaDetalle();
-            det.setIdFacturaDet(contadorDetalle++);
-            det.setIdArticulo(Integer.parseInt(txtArticulo.getText()));
-            det.setCantidad(Integer.parseInt(txtCantidad.getText()));
-            det.setPrecio(Double.parseDouble(txtPrecio.getText()));
-            detallesTemporal.add(det);
-            datosDetalle.add(det);
+            try {
+                FacturaDetalle det = new FacturaDetalle();
+                det.setIdFacturaDet(contadorDetalle++);
+                det.setIdArticulo(Integer.parseInt(
+                        txtIdArticulo.getText().trim()));
+                det.setCantidad(Integer.parseInt(
+                        txtCantidad.getText().trim().replace(",", ".")));
+                det.setPrecio(Double.parseDouble(
+                        txtPrecio.getText().trim().replace(",", ".")));
 
-            // Actualizar total
-            double total = detallesTemporal.stream()
-                    .mapToDouble(d -> d.getCantidad() * d.getPrecio()).sum();
-            txtTotal.setText(String.format("%.2f", total));
+                detallesTemporal.add(det);
+                datosDetalle.add(det);
 
-            txtArticulo.clear();
-            txtCantidad.clear();
-            txtPrecio.clear();
+                double total = detallesTemporal.stream()
+                        .mapToDouble(d -> d.getCantidad() * d.getPrecio()).sum();
+                txtTotal.setText(String.format("%.2f", total));
+
+                txtIdArticulo.clear();
+                txtCantidad.clear();
+                txtPrecio.clear();
+                lblMensaje.setText("Detalle agregado.");
+            } catch (NumberFormatException ex) {
+                lblMensaje.setText("ID Artículo y Cantidad deben ser enteros. Precio debe ser numérico.");
+            }
         });
 
         btnEliminarDet.setOnAction(e -> {
@@ -331,19 +350,18 @@ public class PantallaFactura {
                 lblMensaje.setText("Seleccione un detalle primero.");
                 return;
             }
-            // Si ya está guardado en BD
             if (sel.getFactura() != null) {
                 if (negocioFactura.eliminarDetalle(sel.getIdFacturaDet()) == 1) {
                     datosDetalle.remove(sel);
                     lblMensaje.setText("Detalle eliminado.");
                 }
             } else {
-                // Solo está en la lista temporal
                 detallesTemporal.remove(sel);
                 datosDetalle.remove(sel);
                 double total = detallesTemporal.stream()
                         .mapToDouble(d -> d.getCantidad() * d.getPrecio()).sum();
                 txtTotal.setText(String.format("%.2f", total));
+                lblMensaje.setText("Detalle eliminado.");
             }
         });
 
@@ -353,21 +371,26 @@ public class PantallaFactura {
                 lblMensaje.setText("Seleccione un detalle primero.");
                 return;
             }
-            sel.setCantidad(Integer.parseInt(txtCantidad.getText()));
-            sel.setPrecio(Double.parseDouble(txtPrecio.getText()));
-            if (sel.getFactura() != null) {
-                negocioFactura.modificarDetalle(sel);
+            try {
+                sel.setCantidad(Integer.parseInt(
+                        txtCantidad.getText().trim().replace(",", ".")));
+                sel.setPrecio(Double.parseDouble(
+                        txtPrecio.getText().trim().replace(",", ".")));
+                if (sel.getFactura() != null) {
+                    negocioFactura.modificarDetalle(sel);
+                }
+                tablaDetalle.refresh();
+                lblMensaje.setText("Detalle modificado.");
+            } catch (NumberFormatException ex) {
+                lblMensaje.setText("Cantidad debe ser entero. Precio debe ser numérico.");
             }
-            tablaDetalle.refresh();
-            lblMensaje.setText("Detalle modificado.");
         });
 
-        // Seleccionar detalle en tabla
         tablaDetalle.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, newVal) -> {
                     if (newVal != null) {
                         txtIdDetalle.setText(String.valueOf(newVal.getIdFacturaDet()));
-                        txtArticulo.setText(String.valueOf(newVal.getIdArticulo()));
+                        txtIdArticulo.setText(String.valueOf(newVal.getIdArticulo()));
                         txtCantidad.setText(String.valueOf(newVal.getCantidad()));
                         txtPrecio.setText(String.valueOf(newVal.getPrecio()));
                     }
@@ -375,7 +398,7 @@ public class PantallaFactura {
 
         cargarTablaFacturas();
 
-        Scene scene = new Scene(layout, 700, 750);
+        Scene scene = new Scene(layout, 700, 780);
         stage.setScene(scene);
         stage.show();
     }
@@ -394,7 +417,7 @@ public class PantallaFactura {
         cmbCiudad.setValue(null);
         txtTotal.clear();
         txtIdDetalle.clear();
-        txtArticulo.clear();
+        txtIdArticulo.clear();
         txtCantidad.clear();
         txtPrecio.clear();
         detallesTemporal.clear();

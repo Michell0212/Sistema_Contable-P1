@@ -16,8 +16,9 @@ public class PantallaCiudad {
 
     private NegocioCiudad negocio = new NegocioCiudad();
 
-    private TextField txtId     = new TextField();
-    private TextField txtNombre = new TextField();
+    private TextField txtId      = new TextField();
+    private TextField txtNombre  = new TextField();
+    private TextField txtBuscar  = new TextField();
     private Label     lblMensaje = new Label();
 
     private TableView<CiudadEntrega> tabla = new TableView<>();
@@ -26,41 +27,43 @@ public class PantallaCiudad {
     public void mostrar(Stage stage) {
         stage.setTitle("Facturación | Ciudad de Entrega");
 
-        // ── Formulario ──
         GridPane form = new GridPane();
         form.setHgap(10);
-        form.setVgap(10);
+        form.setVgap(8);
         form.setPadding(new Insets(15));
-
-        form.add(new Label("ID:"),      0, 0);
-        form.add(txtId,                 1, 0);
-        form.add(new Label("Nombre:"),  0, 1);
-        form.add(txtNombre,             1, 1);
 
         txtId.setEditable(false);
         txtId.setStyle("-fx-background-color: #f0f0f0;");
 
-        // ── Botones ──
+        form.add(new Label("ID:"),     0, 0); form.add(txtId,      1, 0);
+        form.add(new Label("Nombre:"), 0, 1); form.add(txtNombre,  1, 1);
+
+        // ── Buscador ──
+        txtBuscar.setPromptText("Buscar por ID o nombre...");
+        txtBuscar.setPrefWidth(280);
+        Button btnBuscarCampo  = new Button("Buscar");
+        Button btnMostrarTodos = new Button("Mostrar Todos");
+        HBox filaBuscar = new HBox(8, txtBuscar, btnBuscarCampo, btnMostrarTodos);
+        filaBuscar.setPadding(new Insets(5, 15, 5, 15));
+
+        // ── Botones CRUD ──
         Button btnNuevo     = new Button("Nuevo");
         Button btnInsertar  = new Button("Insertar");
         Button btnModificar = new Button("Modificar");
         Button btnEliminar  = new Button("Eliminar");
-        Button btnBuscar    = new Button("Buscar");
         Button btnLimpiar   = new Button("Limpiar");
 
         HBox botones = new HBox(10, btnNuevo, btnInsertar,
-                btnModificar, btnEliminar, btnBuscar, btnLimpiar);
+                btnModificar, btnEliminar, btnLimpiar);
         botones.setPadding(new Insets(10));
         botones.setAlignment(Pos.CENTER);
 
         // ── Tabla ──
-        TableColumn<CiudadEntrega, Integer> colId =
-                new TableColumn<>("ID");
+        TableColumn<CiudadEntrega, Integer> colId = new TableColumn<>("ID");
         colId.setCellValueFactory(new PropertyValueFactory<>("idCiudad"));
         colId.setPrefWidth(80);
 
-        TableColumn<CiudadEntrega, String> colNombre =
-                new TableColumn<>("Nombre");
+        TableColumn<CiudadEntrega, String> colNombre = new TableColumn<>("Nombre");
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colNombre.setPrefWidth(300);
 
@@ -68,14 +71,12 @@ public class PantallaCiudad {
         tabla.setItems(datos);
         tabla.setPrefHeight(250);
 
-        // ── Mensaje ──
         lblMensaje.setStyle("-fx-text-fill: blue; -fx-font-weight: bold;");
 
-        // ── Layout ──
-        VBox layout = new VBox(10, form, botones, lblMensaje, tabla);
+        VBox layout = new VBox(10, form, botones, filaBuscar, lblMensaje, tabla);
         layout.setPadding(new Insets(10));
 
-        // ── Eventos ──
+        // ── Eventos CRUD ──
         btnNuevo.setOnAction(e -> {
             txtId.setText(String.valueOf(negocio.obtenerSiguienteId()));
             txtNombre.clear();
@@ -83,6 +84,10 @@ public class PantallaCiudad {
         });
 
         btnInsertar.setOnAction(e -> {
+            if (txtId.getText().isEmpty()) {
+                lblMensaje.setText("Presione 'Nuevo' primero.");
+                return;
+            }
             if (txtNombre.getText().isEmpty()) {
                 lblMensaje.setText("El nombre es obligatorio.");
                 return;
@@ -101,7 +106,7 @@ public class PantallaCiudad {
 
         btnModificar.setOnAction(e -> {
             if (txtId.getText().isEmpty()) {
-                lblMensaje.setText("Seleccione una ciudad primero.");
+                lblMensaje.setText("Seleccione una ciudad de la tabla primero.");
                 return;
             }
             CiudadEntrega c = new CiudadEntrega();
@@ -118,7 +123,7 @@ public class PantallaCiudad {
 
         btnEliminar.setOnAction(e -> {
             if (txtId.getText().isEmpty()) {
-                lblMensaje.setText("Seleccione una ciudad primero.");
+                lblMensaje.setText("Seleccione una ciudad de la tabla primero.");
                 return;
             }
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
@@ -136,24 +141,37 @@ public class PantallaCiudad {
             });
         });
 
-        btnBuscar.setOnAction(e -> {
-            if (txtId.getText().isEmpty()) {
-                lblMensaje.setText("Ingrese un ID para buscar.");
+        btnLimpiar.setOnAction(e -> limpiar());
+
+        // ── Eventos Búsqueda ──
+        btnBuscarCampo.setOnAction(e -> {
+            String val = txtBuscar.getText().trim();
+            if (val.isEmpty()) {
+                cargarTabla();
                 return;
             }
-            CiudadEntrega c = negocio.buscar(Integer.parseInt(txtId.getText()));
-            if (c != null) {
-                txtNombre.setText(c.getNombre());
-                lblMensaje.setText("Ciudad encontrada.");
+            // Buscar por todos los campos
+            var lista = negocio.buscarPorNombre(val);
+            datos.clear();
+            if (lista != null && !lista.isEmpty()) {
+                datos.addAll(lista);
+                lblMensaje.setText(lista.size() + " registro(s) encontrado(s).");
             } else {
-                lblMensaje.setText("Ciudad no encontrada.");
+                lblMensaje.setText("No se encontraron registros.");
             }
         });
 
-        btnLimpiar.setOnAction(e -> limpiar());
+        txtBuscar.setOnAction(e -> btnBuscarCampo.fire());
 
+        btnMostrarTodos.setOnAction(e -> {
+            txtBuscar.clear();
+            cargarTabla();
+            lblMensaje.setText("");
+        });
+
+        // Seleccionar fila en tabla
         tabla.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> {
+                (obs, old, newVal) -> {
                     if (newVal != null) {
                         txtId.setText(String.valueOf(newVal.getIdCiudad()));
                         txtNombre.setText(newVal.getNombre());
@@ -163,7 +181,7 @@ public class PantallaCiudad {
 
         cargarTabla();
 
-        Scene scene = new Scene(layout, 500, 450);
+        Scene scene = new Scene(layout, 550, 500);
         stage.setScene(scene);
         stage.show();
     }
@@ -177,6 +195,7 @@ public class PantallaCiudad {
     private void limpiar() {
         txtId.clear();
         txtNombre.clear();
+        txtBuscar.clear();
         lblMensaje.setText("");
         tabla.getSelectionModel().clearSelection();
     }

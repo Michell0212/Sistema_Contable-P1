@@ -24,6 +24,10 @@ public class FacturaDetalle implements Serializable {
     @Column(name = "PRECIO", nullable = false, columnDefinition = "NUMBER(10,2)")
     private Double precio;
 
+    // Campo transitorio: no se guarda en BD, solo para mostrar en pantalla
+    @Transient
+    private String nombreArticulo;
+
     public FacturaDetalle() {}
 
     public Integer getIdFacturaDet() { return idFacturaDet; }
@@ -36,4 +40,6 @@ public class FacturaDetalle implements Serializable {
     public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
     public Double getPrecio() { return precio; }
     public void setPrecio(Double precio) { this.precio = precio; }
+    public String getNombreArticulo() { return nombreArticulo; }
+    public void setNombreArticulo(String nombreArticulo) { this.nombreArticulo = nombreArticulo; }
 }
