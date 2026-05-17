@@ -151,6 +151,26 @@ public class NegocioFactura {
         }
     }
 
+    public List<Object[]> reporteVentasPorCiudad() {
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+        try {
+            emf = Persistence.createEntityManagerFactory(PU);
+            em  = emf.createEntityManager();
+            return em.createQuery(
+                            "SELECT c.nombre, SUM(f.valorTotal) " +
+                                    "FROM FacturaCabecera f JOIN f.ciudad c " +
+                                    "GROUP BY c.nombre ORDER BY SUM(f.valorTotal) DESC")
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (em  != null) em.close();
+            if (emf != null) emf.close();
+        }
+    }
+
     public Integer obtenerSiguienteId() {
         EntityManagerFactory emf = null;
         EntityManager em = null;

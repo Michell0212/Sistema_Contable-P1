@@ -4,11 +4,13 @@ import com.sistema.comun.modelo.Usuario;
 import com.sistema.facturacion.presentacion.PantallaCliente;
 import com.sistema.facturacion.presentacion.PantallaCiudad;
 import com.sistema.facturacion.presentacion.PantallaFactura;
+import com.sistema.facturacion.presentacion.ReporteVentasCiudad;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -27,8 +29,8 @@ public class MenuPrincipal {
                 + " | Rol: " + usuarioActual.getRol());
         lblUsuario.setStyle("-fx-font-size: 11px; -fx-text-fill: #888888;");
 
-        // ── Estilo PRIMERO ──
         String estiloBtn = "-fx-pref-width: 250px; -fx-pref-height: 35px; -fx-font-size: 13px;";
+        String estiloBtnDeshabilitado = estiloBtn + "-fx-opacity: 0.5;";
 
         // ── Facturación ──
         Label lblFacturacion = new Label("── Facturación ──");
@@ -42,6 +44,16 @@ public class MenuPrincipal {
         btnCiudades.setStyle(estiloBtn);
         btnFacturas.setStyle(estiloBtn);
 
+        // ── Reportes ──
+        Label lblReportes = new Label("── Reportes ──");
+        lblReportes.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
+
+        Button btnReporte1 = new Button("Ventas por Ciudad");
+        Button btnReporte2 = new Button("Facturación por Cliente");
+
+        btnReporte1.setStyle(estiloBtn);
+        btnReporte2.setStyle(estiloBtn);
+
         // ── Inventarios ──
         Label lblInventarios = new Label("── Inventarios ──");
         lblInventarios.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
@@ -49,8 +61,8 @@ public class MenuPrincipal {
         Button btnArticulos   = new Button("Artículos");
         Button btnMovimientos = new Button("Movimientos");
 
-        btnArticulos.setStyle(estiloBtn + "-fx-opacity: 0.5;");
-        btnMovimientos.setStyle(estiloBtn + "-fx-opacity: 0.5;");
+        btnArticulos.setStyle(estiloBtnDeshabilitado);
+        btnMovimientos.setStyle(estiloBtnDeshabilitado);
         btnArticulos.setDisable(true);
         btnMovimientos.setDisable(true);
 
@@ -61,8 +73,8 @@ public class MenuPrincipal {
         Button btnRecibos = new Button("Recibos CxC");
         Button btnPagos   = new Button("Pagos");
 
-        btnRecibos.setStyle(estiloBtn + "-fx-opacity: 0.5;");
-        btnPagos.setStyle(estiloBtn + "-fx-opacity: 0.5;");
+        btnRecibos.setStyle(estiloBtnDeshabilitado);
+        btnPagos.setStyle(estiloBtnDeshabilitado);
         btnRecibos.setDisable(true);
         btnPagos.setDisable(true);
 
@@ -70,48 +82,53 @@ public class MenuPrincipal {
         Label lblAdmin = new Label("── Administración ──");
         lblAdmin.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
 
-        Button btnUsuarios = new Button("👥  Usuarios");
+        Button btnUsuarios = new Button("Usuarios");
         btnUsuarios.setStyle(estiloBtn);
 
-        // Solo ADMIN puede gestionar usuarios
         if (!"ADMIN".equals(usuarioActual.getRol())) {
             btnUsuarios.setDisable(true);
-            btnUsuarios.setStyle(estiloBtn + "-fx-opacity: 0.5;");
+            btnUsuarios.setStyle(estiloBtnDeshabilitado);
         }
 
         // ── Salir ──
         Button btnSalir = new Button("Salir");
-        btnSalir.setStyle("-fx-background-color: #C0392B; -fx-text-fill: white; -fx-pref-width: 250px;");
+        btnSalir.setStyle("-fx-background-color: #C0392B; -fx-text-fill: white;"
+                + "-fx-pref-width: 250px; -fx-pref-height: 35px;");
 
         // ── Layout ──
         VBox layout = new VBox(10,
                 lblTitulo, lblSubtitulo, lblUsuario,
-                new Label(""),
+                new Separator(),
                 lblFacturacion,
                 btnClientes, btnCiudades, btnFacturas,
-                new Label(""),
+                new Separator(),
+                lblReportes,
+                btnReporte1, btnReporte2,
+                new Separator(),
                 lblInventarios,
                 btnArticulos, btnMovimientos,
-                new Label(""),
+                new Separator(),
                 lblCxc,
                 btnRecibos, btnPagos,
-                new Label(""),
+                new Separator(),
                 lblAdmin,
                 btnUsuarios,
-                new Label(""),
+                new Separator(),
                 btnSalir
         );
-        layout.setPadding(new Insets(30));
+        layout.setPadding(new Insets(20));
         layout.setAlignment(Pos.CENTER);
 
         // ── Eventos ──
         btnClientes.setOnAction(e -> new PantallaCliente().mostrar(new Stage()));
         btnCiudades.setOnAction(e -> new PantallaCiudad().mostrar(new Stage()));
         btnFacturas.setOnAction(e -> new PantallaFactura().mostrar(new Stage()));
+        btnReporte1.setOnAction(e -> new ReporteVentasCiudad().mostrar(new Stage()));
+        btnReporte2.setOnAction(e -> { /* siguiente paso - Reporte 2 */ });
         btnUsuarios.setOnAction(e -> new PantallaUsuarios().mostrar(new Stage()));
         btnSalir.setOnAction(e -> stage.close());
 
-        Scene scene = new Scene(layout, 350, 680);
+        Scene scene = new Scene(layout, 350, 780);
         stage.setScene(scene);
         stage.show();
     }
