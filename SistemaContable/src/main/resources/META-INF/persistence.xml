@@ -14,12 +14,18 @@
         <class>com.sistema.facturacion.modelo.FacturaCabecera</class>
         <class>com.sistema.facturacion.modelo.FacturaDetalle</class>
 
+        <!-- Entidades cxc -->
+        <class>com.sistema.cxc.modelo.Cobrador</class>
+        <class>com.sistema.cxc.modelo.FormaPago</class>
+        <class>com.sistema.cxc.modelo.PagoDetalle</class>
+
+
         <!-- CAMBIAR DE ACUERDO A SUS AJUSTES! -->
         <properties>
             <property name="hibernate.connection.driver_class"
                       value="oracle.jdbc.OracleDriver"/>
             <property name="hibernate.connection.url"
-                      value="jdbc:oracle:thin:@//localhost:1521/XEPDB1"/>
+                      value="jdbc:oracle:thin:@//localhost:1521/XE"/>
             <property name="hibernate.connection.username"
                       value="SYSTEM"/>
             <property name="hibernate.connection.password"
@@ -27,7 +33,7 @@
             <property name="hibernate.dialect"
                       value="org.hibernate.dialect.Oracle10gDialect"/>
             <property name="hibernate.hbm2ddl.auto"
-                      value="validate"/>
+                      value="update"/>
             <property name="hibernate.show_sql"   value="true"/>
             <property name="hibernate.format_sql" value="true"/>
         </properties>
