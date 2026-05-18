@@ -136,4 +136,30 @@ public class NegocioArticulo {
             if (emf != null) emf.close();
         }
     }
+    
+    /**
+     * Busca un artículo por su clave primaria en formato int.
+     */
+    public Articulo buscarPorId(int idArticulo) {
+        return buscarPorId(new BigDecimal(idArticulo));
+    }
+
+    /**
+     * Busca un artículo por su clave primaria en formato BigDecimal.
+     */
+    public Articulo buscarPorId(BigDecimal idArticulo) {
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+        try {
+            emf = Persistence.createEntityManagerFactory(PU);
+            em  = emf.createEntityManager();
+            return em.find(Articulo.class, idArticulo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (em  != null) em.close();
+            if (emf != null) emf.close();
+        }
+    }
 }

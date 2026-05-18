@@ -33,7 +33,7 @@ public class PantallaComprobante {
     private NegocioTipoMovimiento negocioTipoMovimiento = new NegocioTipoMovimiento();
     private NegocioArticulo negocioArticulo = new NegocioArticulo();
 
-    // ── Cabecera ──
+    // Componentes de Cabecera
     private TextField txtIdComprobante = new TextField();
     private TextField txtNumeroComprobante = new TextField();
     private DatePicker dpFecha = new DatePicker();
@@ -42,13 +42,13 @@ public class PantallaComprobante {
     private Label lblMensaje = new Label();
     private Button btnNuevo = new Button("Nuevo Comprobante");
 
-    // ── Detalle ──
+    // Componentes de Detalle
     private TextField txtIdDetalle = new TextField();
     private ComboBox<Articulo> cmbArticulo = new ComboBox<>();
     private TextField txtCantidad = new TextField();
     private TextField txtPrecio = new TextField();
 
-    // ── Tablas ──
+    // Tablas y Listas Observables
     private TableView<ComprobanteDetalle> tablaDetalle = new TableView<>();
     private ObservableList<ComprobanteDetalle> datosDetalle = FXCollections.observableArrayList();
 
@@ -61,7 +61,7 @@ public class PantallaComprobante {
     public void mostrar(Stage stage) {
         stage.setTitle("Inventario | Gestión de Comprobantes");
 
-        // ══════ 1. CABECERA ══════
+        // Formulario de Cabecera
         GridPane formCab = new GridPane();
         formCab.setHgap(10); formCab.setVgap(8); formCab.setPadding(new Insets(10));
 
@@ -86,7 +86,7 @@ public class PantallaComprobante {
         });
         cmbTipoMovimiento.setButtonCell(cmbTipoMovimiento.getCellFactory().call(null));
 
-        // ══════ 2. DETALLE ══════
+        // Formulario de Detalle
         GridPane formDet = new GridPane();
         formDet.setHgap(10); formDet.setVgap(8); formDet.setPadding(new Insets(10));
 
@@ -124,6 +124,7 @@ public class PantallaComprobante {
         HBox btnsDet = new HBox(8, btnAgregarDet, btnEliminarDet);
         btnsDet.setPadding(new Insets(5));
 
+        // Configuración de Tabla Detalle
         TableColumn<ComprobanteDetalle, BigDecimal> colIdDet = new TableColumn<>("ID Fila");
         colIdDet.setCellValueFactory(new PropertyValueFactory<>("idComprobanteDet"));
         
@@ -141,8 +142,8 @@ public class PantallaComprobante {
         tablaDetalle.setItems(datosDetalle);
         tablaDetalle.setPrefHeight(250);
 
-        // ══════ 3. COMPROBANTES REGISTRADOS ══════
-        Label lblHistorial = new Label("── Comprobantes Registrados ──");
+        // Panel Historial de Comprobantes Registrados
+        Label lblHistorial = new Label("Comprobantes Registrados");
         lblHistorial.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E75B6;");
 
         Button btnGuardar = new Button("Guardar Nuevo");
@@ -166,13 +167,11 @@ public class PantallaComprobante {
         TableColumn<ComprobanteCabecera, Date> colFecha = new TableColumn<>("Fecha");
         colFecha.setCellValueFactory(new PropertyValueFactory<>("fecha"));
 
-        // 🔥 NUEVA COLUMNA: Tipo de Movimiento
         TableColumn<ComprobanteCabecera, String> colTipo = new TableColumn<>("Movimiento");
         colTipo.setCellValueFactory(cd -> new SimpleStringProperty(
             cd.getValue().getIdTipoMovimiento() != null ? cd.getValue().getIdTipoMovimiento().getNombre() : "N/A"
         ));
 
-        // Columnas existentes
         TableColumn<ComprobanteCabecera, Integer> colCantArt = new TableColumn<>("Cant. Ítems");
         colCantArt.setCellValueFactory(cd -> {
             int cantidad = cd.getValue().getComprobanteDetalleCollection() != null ? cd.getValue().getComprobanteDetalleCollection().size() : 0;
@@ -196,17 +195,17 @@ public class PantallaComprobante {
 
         lblMensaje.setStyle("-fx-text-fill: blue; -fx-font-weight: bold;");
 
-        // ══════ LAYOUT PRINCIPAL ══════
+        // Construcción del Layout
         VBox layout = new VBox(8,
-                new Label("═══ CABECERA ═══"), formCab,
+                new Label("CABECERA"), formCab,
                 new Separator(),
-                new Label("═══ DETALLE DE ARTÍCULOS ═══"), formDet, btnsDet, tablaDetalle,
+                new Label("DETALLE DE ARTÍCULOS"), formDet, btnsDet, tablaDetalle,
                 new Separator(),
                 lblHistorial, btnsCrud, lblMensaje, tablaComprobantes
         );
         layout.setPadding(new Insets(10));
 
-        // ══════ EVENTOS ══════
+        // Gestión de Eventos
         btnNuevo.setOnAction(e -> prepararNuevo());
 
         btnAgregarDet.setOnAction(e -> {
@@ -231,11 +230,10 @@ public class PantallaComprobante {
                 txtPrecio.clear();
                 lblMensaje.setText("Fila agregada.");
             } catch (Exception ex) {
-                lblMensaje.setText("Error en números.");
+                lblMensaje.setText("Error en formato numérico.");
             }
         });
 
-        // 🔥 MEJORA EN EL BOTÓN QUITAR FILA 🔥
         btnEliminarDet.setOnAction(e -> {
             ComprobanteDetalle sel = tablaDetalle.getSelectionModel().getSelectedItem();
             if (sel != null) {
@@ -248,7 +246,6 @@ public class PantallaComprobante {
             }
         });
 
-        // 🔥 GUARDAR
         btnGuardar.setOnAction(e -> {
             if (txtNumeroComprobante.getText().isEmpty() || cmbTipoMovimiento.getValue() == null) return;
             ComprobanteCabecera cab = extraerCabeceraDesdeUI();
@@ -262,7 +259,6 @@ public class PantallaComprobante {
             }
         });
 
-        // 🔥 MODIFICAR
         btnModificar.setOnAction(e -> {
             if (txtNumeroComprobante.getText().isEmpty() || cmbTipoMovimiento.getValue() == null) return;
             ComprobanteCabecera cab = extraerCabeceraDesdeUI();
@@ -270,14 +266,12 @@ public class PantallaComprobante {
                 negocioComprobante.modificarTransaccion(cab, new ArrayList<>(detallesTemporal));
                 cargarTablaComprobantes();
                 prepararNuevo();
-                // Ponemos el mensaje DESPUÉS de preparar nuevo para que no se borre
                 lblMensaje.setText("Comprobante modificado exitosamente."); 
             } catch (Exception ex) {
                 lblMensaje.setText(ex.getMessage());
             }
         });
 
-        // 🔥 ELIMINAR
         btnEliminar.setOnAction(e -> {
             try {
                 BigDecimal id = new BigDecimal(txtIdComprobante.getText());
@@ -290,7 +284,6 @@ public class PantallaComprobante {
             }
         });
 
-        // 🔥 BUSCAR
         btnBuscar.setOnAction(e -> {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Buscar Comprobante");
@@ -313,7 +306,6 @@ public class PantallaComprobante {
             });
         });
 
-        // 🔥 AL TOCAR UNA FILA EN LA TABLA DE HISTORIAL 🔥
         tablaComprobantes.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 cargarDatosEnPantalla(newVal);
@@ -321,24 +313,22 @@ public class PantallaComprobante {
             }
         });
 
-        // ══════ INICIALIZACIÓN ══════
+        // Inicialización de datos
         cargarTablaComprobantes();
         prepararNuevo(); 
 
-        // 🔥 LA MAGIA DEL SCROLL PANE 🔥
+        // Configuración del contenedor con Scroll
         ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(layout);           // Metemos todo tu diseño dentro del scroll
-        scrollPane.setFitToWidth(true);          // Obligatorio: hace que el diseño ocupe todo el ancho de la ventana
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Muestra la barra vertical solo si hace falta
+        scrollPane.setContent(layout);           
+        scrollPane.setFitToWidth(true);          
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background-color: transparent;");
 
-        // Ahora le pasamos el scrollPane a la Scene en lugar del layout directamente
         Scene scene = new Scene(scrollPane, 650, 800);
         stage.setScene(scene);
         stage.show();
     }
 
-    // Método auxiliar para evitar repetir código
     private ComprobanteCabecera extraerCabeceraDesdeUI() {
         ComprobanteCabecera cab = new ComprobanteCabecera();
         cab.setIdComprobante(new BigDecimal(txtIdComprobante.getText()));
@@ -348,7 +338,6 @@ public class PantallaComprobante {
         return cab;
     }
 
-    // Método auxiliar para cargar datos al tocar tabla o al buscar
     private void cargarDatosEnPantalla(ComprobanteCabecera cab) {
         txtIdComprobante.setText(String.valueOf(cab.getIdComprobante()));
         txtNumeroComprobante.setText(cab.getNumeroComprobante());
@@ -356,7 +345,7 @@ public class PantallaComprobante {
         if (cab.getFecha() != null) dpFecha.setValue(cab.getFecha().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         
         datosDetalle.clear();
-        detallesTemporal.clear(); // Vaciamos y rellenamos la temporal para permitir edición
+        detallesTemporal.clear(); 
         if (cab.getComprobanteDetalleCollection() != null) {
             List<ComprobanteDetalle> dts = new ArrayList<>(cab.getComprobanteDetalleCollection());
             datosDetalle.addAll(dts);

@@ -9,6 +9,7 @@ import com.sistema.facturacion.presentacion.ReporteVentasCiudad;
 import com.sistema.inventario.presentacion.PantallaTipoMovimiento;
 import com.sistema.inventario.presentacion.PantallaArticulo;
 import com.sistema.inventario.presentacion.PantallaComprobante;
+import com.sistema.inventario.presentacion.PantallaReporte;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -65,11 +66,15 @@ public class MenuPrincipal {
 
         Button btnArticulos    = new Button("Artículos");
         Button btnMovimientos  = new Button("Movimientos");
-        Button btnComprobantes = new Button("Comprobantes"); // <-- CORREGIDO EL TEXTO AQUÍ
+        Button btnComprobantes = new Button("Comprobantes");
 
         btnArticulos.setStyle(estiloBtn);
         btnMovimientos.setStyle(estiloBtn);
         btnComprobantes.setStyle(estiloBtn);
+        
+        // ── Reportes ──
+        Button btnReporteInv = new Button("Reportes Inventario");
+        btnReporteInv.setStyle(estiloBtn);
 
         // ── CxC ──
         Label lblCxc = new Label("── Cuentas por Cobrar ──");
@@ -107,11 +112,13 @@ public class MenuPrincipal {
                 lblFacturacion,
                 btnClientes, btnCiudades, btnFacturas,
                 new Separator(),
-                lblReportes,
                 btnReporte1, btnReporte2,
                 new Separator(),
                 lblInventarios,
                 btnArticulos, btnMovimientos, btnComprobantes,
+                new Separator(),
+                lblReportes,
+                btnReporteInv,
                 new Separator(),
                 lblCxc,
                 btnRecibos, btnPagos,
@@ -128,6 +135,8 @@ public class MenuPrincipal {
         btnArticulos.setOnAction(e -> new PantallaArticulo().mostrar(new Stage()));
         btnComprobantes.setOnAction(e -> new PantallaComprobante().mostrar(new Stage()));
         btnMovimientos.setOnAction(e -> new PantallaTipoMovimiento().mostrar(new Stage()));
+        btnReporteInv.setOnAction(e -> new PantallaReporte().mostrar(new Stage()));
+
         btnClientes.setOnAction(e -> new PantallaCliente().mostrar(new Stage()));
         btnCiudades.setOnAction(e -> new PantallaCiudad().mostrar(new Stage()));
         btnFacturas.setOnAction(e -> new PantallaFactura().mostrar(new Stage()));

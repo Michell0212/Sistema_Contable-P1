@@ -1,9 +1,14 @@
 package com.sistema.inventario.negocio;
 
+import com.sistema.facturacion.modelo.FacturaCabecera;
+import com.sistema.facturacion.modelo.FacturaDetalle;
+import com.sistema.inventario.modelo.Articulo;
 import com.sistema.inventario.modelo.ComprobanteCabecera;
 import com.sistema.inventario.modelo.ComprobanteDetalle;
+import com.sistema.inventario.modelo.TipoMovimiento;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -13,17 +18,14 @@ import javax.persistence.TypedQuery;
 
 public class NegocioComprobante {
 
-    // Misma unidad de persistencia
     private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("SistemaContablePU");
 
     /**
      * Guarda la Cabecera y el Detalle en una sola transacción atómica.
      */
     public void registrarTransaccion(ComprobanteCabecera cabecera, List<ComprobanteDetalle> detalles) throws Exception {
-        // 1. Validaciones estrictas de negocio
         validarTransaccion(cabecera, detalles);
 
-        // 2. Asignar fecha actual si viene vacía
         if (cabecera.getFecha() == null) {
             cabecera.setFecha(new Date());
         }
@@ -32,25 +34,24 @@ public class NegocioComprobante {
         try {
             em.getTransaction().begin();
 
-            // 3. Enlazar bidireccionalmente los objetos (Vital para Hibernate)
+            // Enlazar bidireccionalmente los objetos para la persistencia
             for (ComprobanteDetalle detalle : detalles) {
-                detalle.setIdComprobante(cabecera); // El hijo (detalle) conoce a su padre
+                detalle.setIdComprobante(cabecera);
             }
-            cabecera.setComprobanteDetalleCollection(detalles); // El padre conoce a sus hijos
+            cabecera.setComprobanteDetalleCollection(detalles);
 
-            // 4. Guardar. Gracias a CascadeType.ALL, persistir la cabecera guardará los detalles.
+            // Gracias a CascadeType.ALL, persistir la cabecera guardará los detalles.
             em.merge(cabecera);
 
-            // 5. Confirmar transacción
             em.getTransaction().commit();
             
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback(); // Deshacer todo si hay un fallo
+                em.getTransaction().rollback();
             }
             throw new Exception("Error al guardar la transacción: " + e.getMessage());
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
 
@@ -63,8 +64,7 @@ public class NegocioComprobante {
             TypedQuery<ComprobanteCabecera> query = em.createNamedQuery("ComprobanteCabecera.findAll", ComprobanteCabecera.class);
             List<ComprobanteCabecera> lista = query.getResultList();
             
-            // Recorremos la lista y "tocamos" los detalles para obligar 
-            // a Hibernate a traerlos ANTES de cerrar la conexión (em.close)
+            // Inicialización de colecciones perezosas antes de cerrar el EntityManager
             for (ComprobanteCabecera cab : lista) {
                 if (cab.getComprobanteDetalleCollection() != null) {
                     cab.getComprobanteDetalleCollection().size(); 
@@ -73,7 +73,7 @@ public class NegocioComprobante {
             
             return lista;
         } finally {
-            em.close(); // Ahora sí podemos cerrar la conexión en paz
+            if (em != null) em.close();
         }
     }
 
@@ -91,23 +91,19 @@ public class NegocioComprobante {
             throw new Exception("Debe seleccionar un tipo de movimiento (Ingreso/Egreso).");
         }
         
-        // Regla: No se puede guardar un comprobante sin artículos
         if (detalles == null || detalles.isEmpty()) {
             throw new Exception("El comprobante debe tener al menos un artículo en el detalle.");
         }
 
-        // Reglas a nivel de cada fila del detalle
         for (ComprobanteDetalle det : detalles) {
             if (det.getIdArticulo() == null) {
                 throw new Exception("Una de las filas no tiene un artículo seleccionado.");
             }
             
-            // Validar que la cantidad sea mayor a 0 (Usando BigInteger)
             if (det.getCantidad() == null || det.getCantidad().compareTo(BigInteger.ZERO) <= 0) {
                 throw new Exception("Las cantidades de los artículos deben ser mayores a cero.");
             }
             
-            // Validar que el precio no sea negativo (Usando BigDecimal)
             if (det.getPrecio() == null || det.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
                 throw new Exception("El precio en el detalle no puede ser negativo.");
             }
@@ -128,7 +124,7 @@ public class NegocioComprobante {
             e.printStackTrace();
             return BigDecimal.ONE;
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
 
@@ -146,7 +142,7 @@ public class NegocioComprobante {
             e.printStackTrace();
             return BigDecimal.ONE;
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
     
@@ -158,29 +154,23 @@ public class NegocioComprobante {
         try {
             em.getTransaction().begin();
 
-            // 1. Traer el original directo de la base de datos (Entidad "Manejada" por Hibernate)
             ComprobanteCabecera cabeceraBD = em.find(ComprobanteCabecera.class, cabeceraUI.getIdComprobante());
             if (cabeceraBD == null) {
                 throw new Exception("El comprobante no existe.");
             }
 
-            // 2. Actualizar los datos básicos de la cabecera
             cabeceraBD.setNumeroComprobante(cabeceraUI.getNumeroComprobante());
             cabeceraBD.setFecha(cabeceraUI.getFecha());
             cabeceraBD.setIdTipoMovimiento(cabeceraUI.getIdTipoMovimiento());
 
-            // 3. 🔥 EL TRUCO PARA EL ORPHAN REMOVAL 🔥
-            // Vaciamos la lista que tiene Hibernate en memoria (esto detecta cuáles vas a eliminar)
+            // Sincronización de la colección mediante Orphan Removal
             cabeceraBD.getComprobanteDetalleCollection().clear();
 
-            // 4. Llenamos la lista nuevamente con los que quedaron en tu pantalla
             for (ComprobanteDetalle det : detallesActualizados) {
-                // IMPORTANTÍSIMO: Le decimos al detalle quién es su padre
                 det.setIdComprobante(cabeceraBD); 
                 cabeceraBD.getComprobanteDetalleCollection().add(det);
             }
 
-            // 5. Guardamos los cambios
             em.merge(cabeceraBD);
             em.getTransaction().commit();
 
@@ -190,7 +180,7 @@ public class NegocioComprobante {
             }
             throw new Exception("Error al modificar en BD: " + ex.getMessage());
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
 
@@ -203,7 +193,7 @@ public class NegocioComprobante {
             em.getTransaction().begin();
             ComprobanteCabecera cabecera = em.find(ComprobanteCabecera.class, idComprobante);
             if (cabecera != null) {
-                em.remove(cabecera); // Gracias al CascadeType.ALL, esto también borra los detalles
+                em.remove(cabecera); 
             } else {
                 throw new Exception("El comprobante no existe.");
             }
@@ -212,7 +202,7 @@ public class NegocioComprobante {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             throw new Exception("Error al eliminar: " + e.getMessage());
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
 
@@ -223,13 +213,87 @@ public class NegocioComprobante {
         EntityManager em = emf.createEntityManager();
         try {
             ComprobanteCabecera cabecera = em.find(ComprobanteCabecera.class, idComprobante);
-            // "Tocamos" la colección de detalles para forzar a Hibernate a traerlos (Lazy Loading)
+            // Carga forzada de la colección (Lazy Loading) antes del cierre del contexto
             if (cabecera != null && cabecera.getComprobanteDetalleCollection() != null) {
                 cabecera.getComprobanteDetalleCollection().size(); 
             }
             return cabecera;
         } finally {
-            em.close();
+            if (em != null) em.close();
+        }
+    }
+    
+    /**
+     * Registra un egreso de inventario a partir de una Factura de Venta.
+     */
+    public boolean registrarEgresoPorVenta(FacturaCabecera factura) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            TipoMovimiento tipoVenta = em.find(TipoMovimiento.class, new BigDecimal(1));
+            if (tipoVenta == null) {
+                System.out.println("ERROR INVENTARIO: No se encontró el Tipo Movimiento con ID 1 (Egreso/Venta).");
+                return false;
+            }
+
+            Number maxIdCab = (Number) em.createQuery(
+                    "SELECT COALESCE(MAX(c.idComprobante), 0) FROM ComprobanteCabecera c")
+                    .getSingleResult();
+            BigDecimal idCabecera = new BigDecimal(maxIdCab.longValue() + 1);
+
+            ComprobanteCabecera cabecera = new ComprobanteCabecera();
+            cabecera.setIdComprobante(idCabecera);
+            cabecera.setNumeroComprobante("VEN-" + factura.getIdFactura());
+            cabecera.setFecha(factura.getFecha());
+            cabecera.setIdTipoMovimiento(tipoVenta);
+
+            Number maxIdDet = (Number) em.createQuery(
+                    "SELECT COALESCE(MAX(d.idComprobanteDet), 0) FROM ComprobanteDetalle d")
+                    .getSingleResult();
+            long nextIdDetalle = maxIdDet.longValue() + 1;
+
+            List<ComprobanteDetalle> listaDetalles = new ArrayList<>();
+            
+            for (FacturaDetalle detFactura : factura.getDetalles()) {
+                ComprobanteDetalle detInv = new ComprobanteDetalle();
+                
+                detInv.setIdComprobanteDet(BigDecimal.valueOf(nextIdDetalle++));
+                detInv.setIdComprobante(cabecera); 
+                
+                // Conversión de tipos para compatibilidad entre módulos
+                BigDecimal idArticuloConvertido = BigDecimal.valueOf(detFactura.getIdArticulo());
+                Articulo articulo = em.find(Articulo.class, idArticuloConvertido);
+                
+                if (articulo == null) {
+                    System.out.println("ERROR INVENTARIO: El artículo con ID " + idArticuloConvertido + " no existe.");
+                    return false;
+                }
+                detInv.setIdArticulo(articulo);
+                
+                detInv.setCantidad(BigInteger.valueOf(detFactura.getCantidad()));
+                detInv.setPrecio(BigDecimal.valueOf(detFactura.getPrecio()));
+                
+                listaDetalles.add(detInv);
+            }
+            
+            cabecera.setComprobanteDetalleCollection(listaDetalles);
+
+            em.persist(cabecera);
+            em.getTransaction().commit();
+            
+            System.out.println("INVENTARIO: Comprobante de egreso generado exitosamente.");
+            return true;
+
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            System.out.println("ERROR AL GENERAR EL COMPROBANTE DE INVENTARIO DESDE FACTURACIÓN:");
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (em != null) em.close();
         }
     }
 }

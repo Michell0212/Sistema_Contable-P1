@@ -130,5 +130,9 @@ public class ComprobanteDetalle implements Serializable {
     public String toString() {
         return "com.sistema.inventario.modelo.ComprobanteDetalle[ idComprobanteDet=" + idComprobanteDet + " ]";
     }
+
+    public void setIdComprobanteDetalle(BigDecimal valueOf) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
     
 }
