@@ -5,6 +5,11 @@ import com.sistema.facturacion.presentacion.PantallaCliente;
 import com.sistema.facturacion.presentacion.PantallaCiudad;
 import com.sistema.facturacion.presentacion.PantallaFactura;
 import com.sistema.facturacion.presentacion.ReporteVentasCiudad;
+
+import com.sistema.inventario.presentacion.PantallaTipoMovimiento;
+import com.sistema.inventario.presentacion.PantallaArticulo;
+import com.sistema.inventario.presentacion.PantallaComprobante;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -58,13 +63,13 @@ public class MenuPrincipal {
         Label lblInventarios = new Label("── Inventarios ──");
         lblInventarios.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
 
-        Button btnArticulos   = new Button("Artículos");
-        Button btnMovimientos = new Button("Movimientos");
+        Button btnArticulos    = new Button("Artículos");
+        Button btnMovimientos  = new Button("Movimientos");
+        Button btnComprobantes = new Button("Comprobantes"); // <-- CORREGIDO EL TEXTO AQUÍ
 
-        btnArticulos.setStyle(estiloBtnDeshabilitado);
-        btnMovimientos.setStyle(estiloBtnDeshabilitado);
-        btnArticulos.setDisable(true);
-        btnMovimientos.setDisable(true);
+        btnArticulos.setStyle(estiloBtn);
+        btnMovimientos.setStyle(estiloBtn);
+        btnComprobantes.setStyle(estiloBtn);
 
         // ── CxC ──
         Label lblCxc = new Label("── Cuentas por Cobrar ──");
@@ -106,7 +111,7 @@ public class MenuPrincipal {
                 btnReporte1, btnReporte2,
                 new Separator(),
                 lblInventarios,
-                btnArticulos, btnMovimientos,
+                btnArticulos, btnMovimientos, btnComprobantes,
                 new Separator(),
                 lblCxc,
                 btnRecibos, btnPagos,
@@ -120,6 +125,9 @@ public class MenuPrincipal {
         layout.setAlignment(Pos.CENTER);
 
         // ── Eventos ──
+        btnArticulos.setOnAction(e -> new PantallaArticulo().mostrar(new Stage()));
+        btnComprobantes.setOnAction(e -> new PantallaComprobante().mostrar(new Stage()));
+        btnMovimientos.setOnAction(e -> new PantallaTipoMovimiento().mostrar(new Stage()));
         btnClientes.setOnAction(e -> new PantallaCliente().mostrar(new Stage()));
         btnCiudades.setOnAction(e -> new PantallaCiudad().mostrar(new Stage()));
         btnFacturas.setOnAction(e -> new PantallaFactura().mostrar(new Stage()));
@@ -128,7 +136,8 @@ public class MenuPrincipal {
         btnUsuarios.setOnAction(e -> new PantallaUsuarios().mostrar(new Stage()));
         btnSalir.setOnAction(e -> stage.close());
 
-        Scene scene = new Scene(layout, 350, 780);
+        // Aumenté un poco el alto de la ventana para que el nuevo botón encaje bien
+        Scene scene = new Scene(layout, 350, 820); 
         stage.setScene(scene);
         stage.show();
     }
