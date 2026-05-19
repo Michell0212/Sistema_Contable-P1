@@ -57,6 +57,9 @@ public class PantallaCobrador {
 
         tablaCobradores = new TableView<>();
 
+        TableColumn<Cobrador, Integer> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(new PropertyValueFactory<>("idCobrador"));
+
         TableColumn<Cobrador, String> colCedula = new TableColumn<>("Cédula");
         colCedula.setCellValueFactory(new PropertyValueFactory<>("cedula"));
 
@@ -66,7 +69,7 @@ public class PantallaCobrador {
         TableColumn<Cobrador, String> colDireccion = new TableColumn<>("Dirección");
         colDireccion.setCellValueFactory(new PropertyValueFactory<>("direccion"));
 
-        tablaCobradores.getColumns().addAll(colCedula, colNombre, colDireccion);
+        tablaCobradores.getColumns().addAll(colId, colCedula, colNombre, colDireccion);
         tablaCobradores.setPrefHeight(200);
 
 
@@ -104,7 +107,7 @@ public class PantallaCobrador {
         Cobrador nuevoCobrador = new Cobrador();
 
 
-        nuevoCobrador.setCedula(txtCedula.getText()); // Captura de la cédula como String ordinario
+        nuevoCobrador.setCedula(txtCedula.getText());
         nuevoCobrador.setNombre(txtNombre.getText());
         nuevoCobrador.setDireccion(txtDireccion.getText());
 
@@ -114,7 +117,7 @@ public class PantallaCobrador {
         if (exito) {
             mostrarAlerta("Éxito", "Cobrador registrado correctamente.", Alert.AlertType.INFORMATION);
             limpiarFormulario();
-            cargarDatosTabla(); // Refresca la TableView automáticamente
+            cargarDatosTabla();
         } else {
             mostrarAlerta("Error", "No se pudo registrar al cobrador en la base de datos.", Alert.AlertType.ERROR);
         }

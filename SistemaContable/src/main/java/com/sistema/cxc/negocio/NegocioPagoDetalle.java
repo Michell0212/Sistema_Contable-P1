@@ -104,4 +104,42 @@ public class NegocioPagoDetalle {
             if (emf != null) emf.close();
         }
     }
+
+    public PagoDetalle buscar(Integer idPagoDetalle) {
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+        try {
+            emf = Persistence.createEntityManagerFactory(PU);
+            em = emf.createEntityManager();
+            return em.find(PagoDetalle.class, idPagoDetalle);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (em != null) em.close();
+            if (emf != null) emf.close();
+        }
+    }
+
+    public int modificar(PagoDetalle pagoDetalle) {
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+        EntityTransaction tx = null;
+        try {
+            emf = Persistence.createEntityManagerFactory(PU);
+            em = emf.createEntityManager();
+            tx = em.getTransaction();
+            tx.begin();
+            em.merge(pagoDetalle);
+            tx.commit();
+            return 1;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
+            return -1;
+        } finally {
+            if (em != null) em.close();
+            if (emf != null) emf.close();
+        }
+    }
 }
