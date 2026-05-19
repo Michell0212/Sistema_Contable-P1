@@ -1,6 +1,11 @@
 package com.sistema.comun.presentacion;
 
 import com.sistema.comun.modelo.Usuario;
+import com.sistema.cxc.presentacion.PantallaCobrador;
+import com.sistema.cxc.presentacion.PantallaFormaPago;
+import com.sistema.cxc.presentacion.PantallaPagos;
+import com.sistema.cxc.presentacion.PantallaReporteEstadoCuenta;
+import com.sistema.cxc.presentacion.PantallaReporteMatriz;
 import com.sistema.facturacion.presentacion.PantallaCliente;
 import com.sistema.facturacion.presentacion.PantallaCiudad;
 import com.sistema.facturacion.presentacion.PantallaFactura;
@@ -50,15 +55,16 @@ public class MenuPrincipal {
         btnCiudades.setStyle(estiloBtn);
         btnFacturas.setStyle(estiloBtn);
 
-        // ── Reportes ──
+        // ── Reportes (Facturación) ──
         Label lblReportes = new Label("── Reportes ──");
         lblReportes.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
 
-        Button btnReporte1 = new Button("Ventas por Ciudad");
-        Button btnReporte2 = new Button("Facturación por Cliente");
+        Button btnReporteVentas = new Button("Ventas por Ciudad");
+        // CORRECCIÓN: Se cambió el nombre para evitar duplicidad
+        Button btnReporteMatrizFact = new Button("Facturación por Cliente"); 
 
-        btnReporte1.setStyle(estiloBtn);
-        btnReporte2.setStyle(estiloBtn);
+        btnReporteVentas.setStyle(estiloBtn);
+        btnReporteMatrizFact.setStyle(estiloBtn);
 
         // ── Inventarios ──
         Label lblInventarios = new Label("── Inventarios ──");
@@ -72,7 +78,7 @@ public class MenuPrincipal {
         btnMovimientos.setStyle(estiloBtn);
         btnComprobantes.setStyle(estiloBtn);
         
-        // ── Reportes ──
+        // ── Reportes (Inventario) ──
         Button btnReporteInv = new Button("Reportes Inventario");
         btnReporteInv.setStyle(estiloBtn);
 
@@ -80,13 +86,22 @@ public class MenuPrincipal {
         Label lblCxc = new Label("── Cuentas por Cobrar ──");
         lblCxc.setStyle("-fx-font-weight: bold; -fx-text-fill: #404040;");
 
-        Button btnRecibos = new Button("Recibos CxC");
+        Button btnCobradores = new Button("Cobradores");
         Button btnPagos   = new Button("Pagos");
+        Button btnFormaPagos   = new Button("Formas de pago");
+        
+        btnCobradores.setStyle(estiloBtn);
+        btnPagos.setStyle(estiloBtn);
+        btnFormaPagos.setStyle(estiloBtn);
+        
+        // ── Reportes (CxC) ──
+        Button btnReporteEstado = new Button("Reportes de Cuentas");
+        // CORRECCIÓN: Se cambió el nombre para evitar duplicidad
+        Button btnReporteMatrizCxc = new Button("Reportes Matriz"); 
+        
+        btnReporteEstado.setStyle(estiloBtn);
+        btnReporteMatrizCxc.setStyle(estiloBtn);
 
-        btnRecibos.setStyle(estiloBtnDeshabilitado);
-        btnPagos.setStyle(estiloBtnDeshabilitado);
-        btnRecibos.setDisable(true);
-        btnPagos.setDisable(true);
 
         // ── Administración ──
         Label lblAdmin = new Label("── Administración ──");
@@ -112,16 +127,18 @@ public class MenuPrincipal {
                 lblFacturacion,
                 btnClientes, btnCiudades, btnFacturas,
                 new Separator(),
-                btnReporte1, btnReporte2,
+                lblReportes, 
+                btnReporteVentas, btnReporteMatrizFact, // Se añadieron los botones correctos aquí
                 new Separator(),
                 lblInventarios,
                 btnArticulos, btnMovimientos, btnComprobantes,
                 new Separator(),
-                lblReportes,
                 btnReporteInv,
                 new Separator(),
                 lblCxc,
-                btnRecibos, btnPagos,
+                btnCobradores, btnPagos, btnFormaPagos,
+                new Separator(),
+                btnReporteEstado, btnReporteMatrizCxc, // Se añadieron los botones correctos aquí
                 new Separator(),
                 lblAdmin,
                 btnUsuarios,
@@ -136,16 +153,26 @@ public class MenuPrincipal {
         btnComprobantes.setOnAction(e -> new PantallaComprobante().mostrar(new Stage()));
         btnMovimientos.setOnAction(e -> new PantallaTipoMovimiento().mostrar(new Stage()));
         btnReporteInv.setOnAction(e -> new PantallaReporte().mostrar(new Stage()));
+        
+        btnCobradores.setOnAction( e -> new PantallaCobrador().mostrar(new Stage()));
+        btnPagos.setOnAction( e -> new PantallaPagos().mostrar(new Stage()));
+        btnFormaPagos.setOnAction( e -> new PantallaFormaPago().mostrar(new Stage()));
+        btnReporteEstado.setOnAction(e -> new PantallaReporteEstadoCuenta().mostrar(new Stage()));
+        
+        btnReporteMatrizCxc.setOnAction(e -> new PantallaReporteMatriz().mostrar(new Stage()));
 
         btnClientes.setOnAction(e -> new PantallaCliente().mostrar(new Stage()));
         btnCiudades.setOnAction(e -> new PantallaCiudad().mostrar(new Stage()));
         btnFacturas.setOnAction(e -> new PantallaFactura().mostrar(new Stage()));
-        btnReporte1.setOnAction(e -> new ReporteVentasCiudad().mostrar(new Stage()));
-        btnReporte2.setOnAction(e -> { /* siguiente paso - Reporte 2 */ });
-        btnUsuarios.setOnAction(e -> new PantallaUsuarios().mostrar(new Stage()));
+        btnReporteVentas.setOnAction(e -> new ReporteVentasCiudad().mostrar(new Stage()));
+        
+        // CORRECCIÓN: Llamada para el otro botón de matriz (Cambia esta clase a la correcta que hiciste para facturación si tienes otra)
+        btnReporteMatrizFact.setOnAction(e -> new PantallaReporteMatriz().mostrar(new Stage())); 
+        
+        // IMPORTANTE: Asegúrate de tener importada esta clase arriba
+        btnUsuarios.setOnAction(e -> new PantallaUsuarios().mostrar(new Stage())); 
         btnSalir.setOnAction(e -> stage.close());
 
-        // Aumenté un poco el alto de la ventana para que el nuevo botón encaje bien
         Scene scene = new Scene(layout, 350, 820); 
         stage.setScene(scene);
         stage.show();
